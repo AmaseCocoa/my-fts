@@ -20,8 +20,6 @@ class SimpleFTS:
     def __tokenize(self, text: str) -> list[str]:
         result = []
         for word in self.__tagger(text):
-            if text == "最新のGalaxy":
-                print(word)
             orig_text = word.surface
             fmt_text = word.feature.lemma
             pos1 = word.feature.pos1
@@ -45,16 +43,21 @@ class SimpleFTS:
 
     def search(self, text: str) -> list[str]:
         targets = []
-        final_result = []
+        counts = []
+        result = []
 
         for text_to_index in self.__tokenize(text):
             targets.append(text_to_index)
         if not targets: 
             return []
 
-        for id, count in set.intersection(*[set(self.__index.get(k, set())) for k in targets]):
-            print(count)
-            final_result.append(self.__results[id])
+        common_ids = set.intersection(*[{t[0] for t in self.__index.get(k, set())} for k in targets])
+        for id, count in {t for t in self.__index.get(targets[0], set()) if t[0] in common_ids}:
+            counts.append(count)
+            result.append(self.__results[id])
+        sorted_pairs = sorted(zip(counts, result))
+            
+        final_result = [result for count, result in sorted_pairs]
         return final_result
 
 
@@ -63,12 +66,20 @@ to_index = [
     "最新のiPhoneで、あそこの美しい風景を楽しく撮影しました。 #全文検索ロジック",
     "最新のAndroidで、あそこの美しい風景を楽しく撮影しました。 #全文検索ロジック",
     "最新のGalaxy Note 7で、あそこの美しい風景を楽しく撮影しました。Galaxyはとても便利です。 #全文検索ロジック",
+    "最新のGalaxy S26で、あそこの美しい風景を楽しく撮影しました。Galaxyはとても便利です。 #全文検索ロジック",
     "iPhoneの最新ロジック"
 ]
 
 for text in to_index:
     fts.add_index(text)
 
-print(fts.search(
-    "最新のGalaxy"
-))
+try:
+    while True:
+        query = input("Enter Query: ")
+        results = fts.search(query)
+    
+        for i in range(len(results)):
+            print(f"Result ({i}): {results[i]}")
+        print("------")
+except KeyboardInterrupt:
+    print("\n")
