@@ -89,7 +89,7 @@ class SimpleFTS:
         if not targets:
             return []
 
-        common_ids = set.union(
+        common_ids = set.intersection( # union
             *[{t[0] for t in self.__index.get(k, set())} for k in targets]
         )
         key_id = targets[0]
