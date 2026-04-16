@@ -10,7 +10,8 @@ WORKDIR /app
 COPY pyproject.toml uv.lock ./
 
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --frozen --no-install-project --no-dev
+    uv sync --frozen --no-install-project --no-dev \
+    uv run build_index.py
 
 FROM python:3.12-slim-bookworm
 
@@ -23,6 +24,8 @@ RUN apt-get update && apt-get install -y \
 WORKDIR /app
 
 COPY --from=builder /app/.venv /app/.venv
+COPY --from=builder /app/index.msgpack /app/index.msgpack
+
 COPY . .
 
 ENV PATH="/app/.venv/bin:$PATH"
