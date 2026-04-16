@@ -1,5 +1,7 @@
 from .fts import SimpleFTS
+from .loader import get_fts
 
 __all__ = [
-    "SimpleFTS"
+    "SimpleFTS",
+    "get_fts",
 ]

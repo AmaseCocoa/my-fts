@@ -1,5 +1,7 @@
 import math
+import msgpack
 import threading
+from pathlib import Path
 from typing import TypedDict
 
 from fugashi import Tagger
@@ -27,6 +29,40 @@ class SimpleFTS:
         self.__bm25: BM25Data = {"avgdl": 0, "N": 0}
         self.__k1 = k1
         self.__b = b
+
+    def save(self, filepath: str | Path) -> None:
+        """Save index to msgpack file."""
+        with self.__lock:
+            filepath = Path(filepath)
+            filepath.parent.mkdir(parents=True, exist_ok=True)
+            
+            data = {
+                "index": {k: list(v) for k, v in self.__index.items()},
+                "results": {str(k): v for k, v in self.__results.items()},
+                "bm25": self.__bm25,
+                "k1": self.__k1,
+                "b": self.__b,
+            }
+            
+            with open(filepath, "wb") as f:
+                f.write(msgpack.packb(data, use_bin_type=True))
+
+    def load(self, filepath: str | Path) -> None:
+        """Load index from msgpack file."""
+        with self.__lock:
+            filepath = Path(filepath)
+            
+            with open(filepath, "rb") as f:
+                data = msgpack.unpackb(f.read(), raw=False, strict_map_key=False)
+            
+            self.__index = {
+                k: {tuple(item) for item in v}
+                for k, v in data["index"].items()
+            }
+            self.__results = {int(k): v for k, v in data["results"].items()}
+            self.__bm25 = data["bm25"]
+            self.__k1 = data["k1"]
+            self.__b = data["b"]
 
     def __update_count(
         self, data_list: set[tuple[int, int]], target_id: int

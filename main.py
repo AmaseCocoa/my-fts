@@ -1,19 +1,18 @@
-from src import SimpleFTS
+from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi import FastAPI
+from src import get_fts
+
+app = FastAPI()
+fts = get_fts()
 
 
-fts = SimpleFTS()
-to_index = []
+with open("./assets/index.html", "r") as f:
+    index_html = f.read()
 
-for text in to_index:
-    fts.add_index(text)
+@app.get("/")
+def index():
+    return HTMLResponse(index_html)
 
-try:
-    while True:
-        query = input("Enter Query: ")
-        results = fts.search(query)
-    
-        for i in range(len(results)):
-            print(f"Result ({i}): {results[i]}")
-        print("------")
-except KeyboardInterrupt:
-    print("\n")
+@app.get("/api/search")
+async def search(query: str):
+    return JSONResponse(fts.search(query))

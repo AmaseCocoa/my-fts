@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>検索ページ</title>
+</head>
+<body>
+
+    <input type="text" id="queryInput" placeholder="検索ワードを入力...">
+    <button onclick="handleSearch()">検索</button>
+
+    <ul id="resultList"></ul>
+
+    <script>
+        async function handleSearch() {
+            const query = document.getElementById('queryInput').value;
+            const resultList = document.getElementById('resultList');
+            
+            // リストをクリア
+            resultList.innerHTML = '<li>読み込み中...</li>';
+
+            try {
+                // APIにリクエスト送信
+                const response = await fetch(`/api/search?query=${encodeURIComponent(query)}`);
+                
+                if (!response.ok) throw new Error('ネットワークエラーが発生しました');
+
+                // 文字列の配列を取得 (例: ["結果1", "結果2"])
+                const data = await response.json();
+
+                // 結果を列挙
+                resultList.innerHTML = ''; // クリア
+                data.forEach(item => {
+                    const li = document.createElement('li');
+                    li.textContent = item;
+                    resultList.appendChild(li);
+                });
+
+                if (data.length === 0) {
+                    resultList.innerHTML = '<li>結果が見つかりませんでした</li>';
+                }
+
+            } catch (error) {
+                console.error('Fetch error:', error);
+                resultList.innerHTML = `<li>エラー: ${error.message}</li>`;
+            }
+        }
+
+        // Enterキーでも検索できるように設定
+        document.getElementById('queryInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') handleSearch();
+        });
+    </script>
+
+</body>
+</html>
