@@ -22,7 +22,7 @@ class SimpleFTS:
 
     def __init__(self, k1: float = 1.2, b: float = 0.75) -> None:
         self.__lock = threading.RLock()
-        self.__tagger = Tagger()
+        self.__tagger = Tagger('-r /dev/null')
 
         self.__index: dict[str, set[tuple[int, int]]] = {}
         self.__results: dict[int, Result] = {}
